@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+    <link rel="stylesheet" href="/static/video-js.css">
+    <script type="text/javascript" src="/static/video.js"></script>
+  </head>
+  <body>
+    <h3>HTML 5 Video Player</h3>
+    <div class="btn-area">
+      <input type="file" name="" value="" id="upload-video">
+      <input type="file" name="" value="" id="upload-sub">
+      <button type="button" name="button" id="play-video">Play video</button>
+    </div>
+    <video id="video" controls preload="metadata" class="video-js vjs-default-skin" width="600" height="400" poster="/waiting.jpg">
+      <track src="/Fantastic_Beasts_And_Where_To_Find_Them(2016).vtt" id="subtitles" kind="subtitles" srclang="en">
+    </video>
+  </body>
+
+  <script type="text/javascript">
+
+    // onchange listener for video upload
+    var uploadVideo = document.getElementById('upload-video');
+    uploadVideo.onchange = function() {
+      var files = this;
+      var URL = window.URL || window.webkitURL;
+      var fileURL = URL.createObjectURL(this.files[0]);
+      var video = document.getElementById('video');
+      video.src = fileURL;
+    }
+
+    var uploadSubs = document.getElementById('upload-sub');
+    var subURL;
+    uploadSubs.onchange = function() {
+      var URL = window.URL || window.webkitURL;
+      var file = this.files[0];
+      var type = file.type;
+      if (type == "vtt") {
+        subURL = URL.createObjectURL(file);
+        return;
+      }
+      //if (type != "srt") { alert("Subtitle file not supported. Please upload srt file" + type); return; }
+      var xhr = new XMLHttpRequest();
+      xhr.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+          // update the subtitle file before initializing video
+          var subtitiles = document.getElementById('subtitles');
+          subtitiles.src = "/cast.vtt";
+        }
+      }
+
+      var formData = new FormData();
+      formData.append("type", "local");
+      formData.append("data", file);
+
+      xhr.open("POST", "/getvtt", true);
+      xhr.send(formData);
+    }
+
+    document.getElementById('play-video').onclick = function() {
+      // initializing video js
+      var player = videojs('video');
+      player.play();
+    }
+
+    // var track = new videojs.VideoTrack({
+    //   id: 'subtitiles',
+    //   kind: 'subtitiles',
+    //   label: 'Movie Subs',
+    //   language: 'en'
+    // });
+    //
+    // player.videoTracks().addTrack(track);
+  </script>
+</html>
